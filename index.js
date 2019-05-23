@@ -72,7 +72,7 @@ const crawler = async () => {
     }))
   )
 
-  const eyecatch_query = '.o-textNote__item__eyecatch img'
+  const eyecatch_query = '.o-textNote__eyecatch img'
   const eyecatchs = await page.$$eval(eyecatch_query, doms =>
     doms.map(dom => ({
       eyecatch_src: dom.currentSrc
