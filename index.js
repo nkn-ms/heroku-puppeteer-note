@@ -56,6 +56,7 @@ const crawler = async () => {
       }
     })
   )
+  console.log(avatars)
 
   const description_query = '.o-textNote__description'
   const descriptions = await page.$$eval(description_query, doms =>
@@ -74,7 +75,7 @@ const crawler = async () => {
   const eyecatch_query = '.o-textNote__item__eyecatch img'
   const eyecatchs = await page.$$eval(eyecatch_query, doms =>
     doms.map(dom => ({
-      eyecatch_src: dom.dataset.src
+      eyecatch_src: dom.currentSrc
     }))
   )
 
@@ -99,6 +100,8 @@ const crawler = async () => {
     const eyecatch = cardItems_className[i].findIndex((elm) => elm.indexOf('o-textNote__eyecatch') !== -1) !== -1 ? eyecatchs.shift() : { eyecatch: null }
     notes.push(Object.assign({}, id, title_url, name_icon_date, description, like, eyecatch))
   }
+  await page.evaluate(() => { debugger })
+
   await browser.close()
   return notes;
 }
