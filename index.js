@@ -6,6 +6,7 @@ const app = new Koa();
 const router = new Router();
 
 router.get('/', async (ctx, next) => {
+  ctx.set('Access-Control-Allow-Origin', '*')
   ctx.body = await crawler(); // クローラーの実行
 });
 
