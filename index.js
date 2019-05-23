@@ -36,7 +36,8 @@ const crawler = async () => {
 
     const titles = document.querySelectorAll('.o-textNote__title a')
     const likes = document.querySelectorAll('.o-noteStatus__item--like')
-    return titles.length >= 10 && likes.length >= 10
+    const eyecatches = document.querySelectorAll('.o-textNote__eyecatch img')
+    return titles.length >= 10 && likes.length >= 10 && eyecatches.length >= 10
   })
   const query = '.o-textNote__title a'
   const titles_urls = await page.$$eval(query, doms =>
