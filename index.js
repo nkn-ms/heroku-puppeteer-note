@@ -7,7 +7,8 @@ const router = new Router();
 
 router.get('/', async (ctx, next) => {
   ctx.set('Access-Control-Allow-Origin', '*')
-  ctx.body = await crawler(); // クローラーの実行
+  ctx.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+  ctx.body = await crawler() // クローラーの実行
 });
 
 app.use(router.routes());
