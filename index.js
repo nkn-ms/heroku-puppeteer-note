@@ -55,9 +55,20 @@ const crawler = async () => {
 
   const eyecatch_query = '.o-textNote__eyecatch img'
   const eyecatchs = await page.$$eval(eyecatch_query, doms =>
-    doms.map(dom => ({
-      eyecatch_src: dom.dataset.src
-    }))
+    doms.map(dom => {
+      let imageSrc
+      if (dom.dataset.src) {
+        if (dom.dataset.src.slice(0, 5) == 'https') {
+          imageSrc = dom.dataset.src
+        }
+      }
+      if (dom.currentSrc) {
+        if (dom.currentSrc.slice(0, 5) == 'https') {
+          imageSrc = dom.currentSrc
+        }
+      }
+      return { eyecatch_src: imageSrc }
+    })
   )
 
   const query = '.o-textNote__title a'
