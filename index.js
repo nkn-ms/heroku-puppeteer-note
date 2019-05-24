@@ -29,16 +29,37 @@ const crawler = async () => {
   await page.goto('https://note.mu')
   // タイムラインが表示されるまで待機する
   await page.waitFor(() => {
-    // 'o-container__body'の最下部よりほんの少し上の位置（ページの無限スクロールが行われる位置）に移動する
-    let scroll_y = window.scrollY
-    let elm_bottom = document.getElementsByClassName('o-container__body')[0].getBoundingClientRect().bottom
-    window.scrollTo({ top: scroll_y + elm_bottom - 100, left: 0 })
+    // 追加のタイムラインを取得するため、初期位置より移動する
+      window.scrollTo({ top: 200, left: 0 })
 
     const titles = document.querySelectorAll('.o-textNote__title a')
-    const likes = document.querySelectorAll('.o-noteStatus__item--like')
     const eyecatches = document.querySelectorAll('.o-textNote__eyecatch img')
-    return titles.length >= 10 && likes.length >= 10 && eyecatches.length >= 10
+    // imageのlazyload が完了するまで待つ(srcの先頭が'https'から始まること)
+    const isFinised = Array.from(eyecatches).every(dom => {
+      let isImageLoaded = false
+      if (dom.dataset.src) {
+        if (dom.dataset.src.slice(0, 5) == 'https') {
+          isImageLoaded = true
+        }
+      }
+      if (dom.currentSrc) {
+        if (dom.currentSrc.slice(0, 5) == 'https') {
+          isImageLoaded = true
+        }
+      }
+      return isImageLoaded
+    })
+
+    return titles.length >= 10 && isFinised
   })
+
+  const eyecatch_query = '.o-textNote__eyecatch img'
+  const eyecatchs = await page.$$eval(eyecatch_query, doms =>
+    doms.map(dom => ({
+      eyecatch_src: dom.dataset.src
+    }))
+  )
+
   const query = '.o-textNote__title a'
   const titles_urls = await page.$$eval(query, doms =>
     doms.map(dom => ({
@@ -57,7 +78,7 @@ const crawler = async () => {
       }
     })
   )
-  console.log(avatars)
+   // console.log(avatars)
 
   const description_query = '.o-textNote__description'
   const descriptions = await page.$$eval(description_query, doms =>
@@ -70,13 +91,6 @@ const crawler = async () => {
   const likes = await page.$$eval(like_query, doms =>
     doms.map(dom => ({
       like: parseInt(dom.innerText),
-    }))
-  )
-
-  const eyecatch_query = '.o-textNote__eyecatch img'
-  const eyecatchs = await page.$$eval(eyecatch_query, doms =>
-    doms.map(dom => ({
-      eyecatch_src: dom.currentSrc
     }))
   )
 
@@ -101,8 +115,6 @@ const crawler = async () => {
     const eyecatch = cardItems_className[i].findIndex((elm) => elm.indexOf('o-textNote__eyecatch') !== -1) !== -1 ? eyecatchs.shift() : { eyecatch: null }
     notes.push(Object.assign({}, id, title_url, name_icon_date, description, like, eyecatch))
   }
-  await page.evaluate(() => { debugger })
-
   await browser.close()
   return notes;
 }
