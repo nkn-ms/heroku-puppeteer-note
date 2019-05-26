@@ -1,15 +1,28 @@
 const Koa = require('koa');
 const Router = require('koa-router');
 const bodyParser = require('koa-bodyparser');
+const koaSend = require('koa-send')
+const findRoot = require('find-root')
 
 const app = new Koa();
 const router = new Router();
 
-router.get('/', async (ctx, next) => {
+router.get('/scraping', async (ctx, next) => {
   ctx.set('Access-Control-Allow-Origin', '*')
   ctx.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
   ctx.body = await crawler() // クローラーの実行
 });
+router.get('/', async ctx => koaSend(ctx, ctx.path, {
+	root:  findRoot(__dirname) + '/dist/index.html'
+}));
+router.get('/css/*', async ctx => koaSend(ctx, ctx.path, {
+	root:  findRoot(__dirname) + '/dist'
+}));
+router.get('/js/*', async ctx => koaSend(ctx, ctx.path, {
+	root:  findRoot(__dirname) + '/dist'
+}));
+console.log(findRoot(__dirname));
+
 
 app.use(router.routes());
 app.use(router.allowedMethods());
