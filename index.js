@@ -12,14 +12,14 @@ router.get('/scraping', async (ctx, next) => {
   ctx.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
   ctx.body = await crawler() // クローラーの実行
 });
-router.get('/', async ctx => koaSend(ctx, ctx.path, {
-	root:  findRoot(__dirname) + '/dist/index.html'
-}));
 router.get('/css/*', async ctx => koaSend(ctx, ctx.path, {
 	root:  findRoot(__dirname) + '/dist'
 }));
 router.get('/js/*', async ctx => koaSend(ctx, ctx.path, {
 	root:  findRoot(__dirname) + '/dist'
+}));
+router.get('/', async ctx => koaSend(ctx, ctx.path, {
+	root:  findRoot(__dirname) + '/dist/index.html'
 }));
 console.log(findRoot(__dirname));
 
@@ -92,7 +92,7 @@ const crawler = async () => {
     }))
   )
 
-  const avatar_query = '.o-timelineFooter__avatar'
+  const avatar_query = '.o-textNote .o-timelineFooter__avatar'
   const avatars = await page.$$eval(avatar_query, doms =>
     doms.map(dom => {
       return {
