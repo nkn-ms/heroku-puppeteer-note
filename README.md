@@ -1,4 +1,6 @@
 # heroku-puppeteer-note
+scraping by puppeteer, constructed vuex, vue-router
+
 working in here
 https://heroku-puppeteer-note.herokuapp.com
 
