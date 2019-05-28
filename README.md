@@ -2,5 +2,5 @@
 working in here
 https://heroku-puppeteer-note.herokuapp.com
 
-before build vue file
+before build dist
 https://github.com/nkn-ms/scraping-note
