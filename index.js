@@ -38,12 +38,13 @@ const crawler = async () => {
   const browser = await puppeteer.launch(LAUNCH_OPTION)
   const page = await browser.newPage()
   await page.setUserAgent(`WDB109 Puppeteer (${process.env.NOTE_EMAIL})`)
+  await page.setViewport({ width: 720, height: 1000 })
 
   await page.goto('https://note.mu')
   // タイムラインが表示されるまで待機する
   await page.waitFor(() => {
     // 追加のタイムラインを取得するため、初期位置より移動する
-      window.scrollTo({ top: 200, left: 0 })
+      window.scrollTo({ top: 1000, left: 0 })
 
     const titles = document.querySelectorAll('.o-textNote__title a')
     const eyecatches = document.querySelectorAll('.o-textNote__eyecatch img')
