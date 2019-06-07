@@ -112,7 +112,7 @@ const crawler = async () => {
     }))
   )
 
-  const like_query = '.o-noteStatus__item--like'
+  const like_query = '.o-textNote .o-noteStatus__item--like'
   const likes = await page.$$eval(like_query, doms =>
     doms.map(dom => ({
       like: parseInt(dom.innerText),
