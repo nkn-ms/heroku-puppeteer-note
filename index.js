@@ -40,7 +40,7 @@ const crawler = async () => {
   await page.setUserAgent(`WDB109 Puppeteer (${process.env.NOTE_EMAIL})`)
   await page.setViewport({ width: 720, height: 1000 })
 
-  await page.goto('https://note.mu')
+  await page.goto('https://note.com')
   // タイムラインが表示されるまで待機する
   await page.waitFor(() => {
     // 追加のタイムラインを取得するため、初期位置より移動する
