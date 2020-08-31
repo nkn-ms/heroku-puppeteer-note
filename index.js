@@ -1,145 +1,124 @@
-const Koa = require('koa');
-const Router = require('koa-router');
-const bodyParser = require('koa-bodyparser');
-const koaSend = require('koa-send')
-const findRoot = require('find-root')
+const Koa = require("koa")
+const Router = require("koa-router")
+const bodyParser = require("koa-bodyparser")
+const koaSend = require("koa-send")
+const findRoot = require("find-root")
 
-const app = new Koa();
-const router = new Router();
+const app = new Koa()
+const router = new Router()
 
-router.get('/scraping', async (ctx, next) => {
-  ctx.set('Access-Control-Allow-Origin', '*')
-  ctx.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+router.get("/scraping", async (ctx, next) => {
+  ctx.set("Access-Control-Allow-Origin", "*")
+  ctx.set(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  )
   ctx.body = await crawler() // クローラーの実行
-});
-router.get('/css/*', async ctx => koaSend(ctx, ctx.path, {
-	root:  findRoot(__dirname) + '/dist'
-}));
-router.get('/js/*', async ctx => koaSend(ctx, ctx.path, {
-	root:  findRoot(__dirname) + '/dist'
-}));
-router.get('/', async ctx => koaSend(ctx, ctx.path, {
-	root:  findRoot(__dirname) + '/dist/index.html'
-}));
-console.log(findRoot(__dirname));
+})
+router.get("/css/*", async ctx =>
+  koaSend(ctx, ctx.path, {
+    root: findRoot(__dirname) + "/dist",
+  })
+)
+router.get("/js/*", async ctx =>
+  koaSend(ctx, ctx.path, {
+    root: findRoot(__dirname) + "/dist",
+  })
+)
+router.get("/", async ctx =>
+  koaSend(ctx, ctx.path, {
+    root: findRoot(__dirname) + "/dist/index.html",
+  })
+)
+console.log(findRoot(__dirname))
 
-
-app.use(router.routes());
-app.use(router.allowedMethods());
-app.use(bodyParser());
-app.listen(process.env.PORT || 3000);
+app.use(router.routes())
+app.use(router.allowedMethods())
+app.use(bodyParser())
+app.listen(process.env.PORT || 3000)
 
 // ここからはクローラーのロジック
-const puppeteer = require('puppeteer');
-// Heroku環境かどうかの判断
-const LAUNCH_OPTION = process.env.DYNO ? { args: ['--no-sandbox', '--disable-setuid-sandbox'] } : { headless: false };
+const puppeteer = require("puppeteer")
 
 const crawler = async () => {
-  const browser = await puppeteer.launch(LAUNCH_OPTION)
+  const browser = await puppeteer.launch({ headless: true })
   const page = await browser.newPage()
   await page.setUserAgent(`WDB109 Puppeteer (${process.env.NOTE_EMAIL})`)
   await page.setViewport({ width: 720, height: 1000 })
 
-  await page.goto('https://note.com')
+  await page.goto("https://note.com")
   // タイムラインが表示されるまで待機する
   await page.waitFor(() => {
     // 追加のタイムラインを取得するため、初期位置より移動する
-      window.scrollTo({ top: 1000, left: 0 })
+    window.scrollTo({ top: 1000, left: 0 })
 
-    const titles = document.querySelectorAll('.o-textNote__title a')
-    const eyecatches = document.querySelectorAll('.o-textNote__eyecatch img')
-    // imageのlazyload が完了するまで待つ(srcの先頭が'https'から始まること)
-    const isFinised = Array.from(eyecatches).every(dom => {
-      let isImageLoaded = false
-      if (dom.dataset.src) {
-        if (dom.dataset.src.slice(0, 5) == 'https') {
-          isImageLoaded = true
-        }
-      }
-      if (dom.currentSrc) {
-        if (dom.currentSrc.slice(0, 5) == 'https') {
-          isImageLoaded = true
-        }
-      }
-      return isImageLoaded
-    })
-
-    return titles.length >= 10 && isFinised
+    const titles = document.querySelectorAll(".o-textNote__title")
+    const likes = document.querySelectorAll(".o-noteStatus__item--like")
+    return titles.length >= 10 && likes.length >= 10
   })
 
-  const eyecatch_query = '.o-textNote__eyecatch img'
-  const eyecatchs = await page.$$eval(eyecatch_query, doms =>
-    doms.map(dom => {
-      let imageSrc
-      if (dom.dataset.src) {
-        if (dom.dataset.src.slice(0, 5) == 'https') {
-          imageSrc = dom.dataset.src
-        }
-      }
-      if (dom.currentSrc) {
-        if (dom.currentSrc.slice(0, 5) == 'https') {
-          imageSrc = dom.currentSrc
-        }
-      }
-      return { eyecatch_src: imageSrc }
-    })
-  )
-
-  const query = '.o-textNote__title a'
-  const titles_urls = await page.$$eval(query, doms =>
+  // title
+  const title_query = ".o-textNote__title"
+  const titles = await page.$$eval(title_query, doms =>
     doms.map(dom => ({
       title: dom.innerText,
+    }))
+  )
+
+  // url
+  const url_query = ".o-gridNote__link.a-link"
+  const urls = await page.$$eval(url_query, doms =>
+    doms.map(dom => ({
       url: dom.href,
     }))
   )
 
-  const avatar_query = '.o-textNote .o-timelineFooter__avatar'
-  const avatars = await page.$$eval(avatar_query, doms =>
-    doms.map(dom => {
-      return {
-        name: dom.querySelectorAll('.o-timelineFooter__name')[0].innerText,
-        icon: dom.querySelectorAll('.m-avatar__image')[0].dataset.src,
-        date: dom.querySelectorAll('.o-timelineFooter__date')[0].innerText,
-      }
-    })
-  )
-   // console.log(avatars)
-
-  const description_query = '.o-textNote__description'
-  const descriptions = await page.$$eval(description_query, doms =>
+  // name
+  const name_query = ".o-timelineFooter__name span"
+  const names = await page.$$eval(name_query, doms =>
     doms.map(dom => ({
-      description: dom.innerText
+      name: dom.innerText,
     }))
   )
 
-  const like_query = '.o-textNote .o-noteStatus__item--like'
+  const description_query = ".o-textNote__description"
+  const descriptions = await page.$$eval(description_query, doms =>
+    doms.map(dom => ({
+      description: dom.innerText,
+    }))
+  )
+
+  // like
+  const like_query = ".o-noteStatus__item--like"
   const likes = await page.$$eval(like_query, doms =>
     doms.map(dom => ({
       like: parseInt(dom.innerText),
     }))
   )
 
-  const cardItem_query = '.o-textNote__item'
-  const cardItems_className = await page.$$eval(cardItem_query, doms =>
-    doms.map(dom => {
-      const arr = []
-      for (const k of Object.keys(dom.children)) {
-        arr.push(dom.children[k].className)
-      }
-      return arr
-    })
+  // eyecatchs
+  const eyecatch_query = ".o-gridNote__eyecatchInner img"
+  const eyecatchs = await page.$$eval(eyecatch_query, doms =>
+    doms.map(dom => ({
+      eyecatch_src: dom.dataset.src,
+    }))
   )
+  // domの取得が完了したのでclose
+  await browser.close()
 
   const notes = []
-  for (let i = 0; i < titles_urls.length; i++) {
+  for (let i = 0; i < titles.length; i++) {
     const id = { id: i + 1 }
-    const title_url = titles_urls[i]
-    const name_icon_date = avatars[i]
-    const description = cardItems_className[i].includes('o-textNote__description') ? descriptions.shift() : { description: null }
+    const title = titles[i]
+    const url = urls[i]
+    const name = names[i]
+    const description = descriptions[i]
     const like = likes[i]
-    const eyecatch = cardItems_className[i].findIndex((elm) => elm.indexOf('o-textNote__eyecatch') !== -1) !== -1 ? eyecatchs.shift() : { eyecatch: null }
-    notes.push(Object.assign({}, id, title_url, name_icon_date, description, like, eyecatch))
+    const eyecatch = eyecatchs[i]
+    notes.push(
+      Object.assign({}, id, title, url, name, description, like, eyecatch)
+    )
   }
-  await browser.close()
-  return notes;
+
+  return notes
 }
