@@ -7,3 +7,6 @@ https://heroku-puppeteer-note.herokuapp.com
 
 before build dist
 https://github.com/nkn-ms/scraping-note
+
+scraping code
+https://github.com/nkn-ms/heroku-puppeteer-note/blob/master/scraping.js
