@@ -21,7 +21,7 @@ async function goScraping() {
 
     const titles = document.querySelectorAll(".o-textNote__title")
     const likes = document.querySelectorAll(".o-noteStatus__item--like")
-    return titles.length >= 10 && likes.length >= 10
+    return titles.length >= 15 && likes.length >= 15
   })
 
   // title
