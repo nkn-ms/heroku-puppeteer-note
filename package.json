@@ -11,11 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "find-root": "^1.1.0",
-    "koa": "^2.7.0",
-    "koa-bodyparser": "^4.2.1",
-    "koa-router": "^7.4.0",
-    "koa-send": "^5.0.0",
-    "puppeteer": "^1.16.0"
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "puppeteer": "^5.2.1"
   }
 }
